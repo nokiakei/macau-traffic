@@ -53,7 +53,7 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 .cam-pop img{width:100%;border-radius:6px;margin:6px 0;display:block;background:#0a1622;min-height:60px}
 .cam-pop a{color:#0369a1}
 @media (max-width:480px){
-  #sheet{left:8px;right:8px;width:auto;bottom:calc(92px + env(safe-area-inset-bottom));max-height:30vh}
+  #sheet{left:8px;right:8px;width:auto;top:calc(60px + env(safe-area-inset-top));bottom:auto;max-height:30vh}
   #legend{font-size:10px;padding:6px 9px;bottom:calc(64px + env(safe-area-inset-bottom));line-height:1.7}
   #dock{top:auto;bottom:calc(8px + env(safe-area-inset-bottom));right:8px;left:8px;flex-direction:row;overflow-x:auto;justify-content:flex-start;gap:6px}
   #dock .chip{flex:0 0 auto}
@@ -80,6 +80,7 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 <div class="hud" id="dock">
   <button class="chip off" id="c-works">🚧 <span id="t-works">工程</span></button>
   <button class="chip" id="c-locate">📍 <span id="t-locate">定位</span></button>
+  <button class="chip" id="c-3d" onclick="location.href='3d.html'">🏙️ <span>3D</span></button>
   <button class="chip" id="c-cams">📷 <span id="t-cams">鏡頭</span></button>
   <button class="chip" id="c-traffic">🚦 <span id="t-trafficMode">模擬路況</span></button>
   <button class="chip" id="c-sat">🛰️ <span id="t-sat">衛星</span></button>
@@ -217,18 +218,25 @@ FlowOverlay.prototype.onAdd = function(){
     for (var j=0;j<count && this.particles.length<cap;j++) this.particles.push({line:ranked[k].i, t:(j+0.15)/count});
   }
   refreshBands(this.lines.length);
-  var self=this, last=performance.now(), hidden=false;
+  var self=this, last=performance.now(), hidden=false, lastFrameT=0;
   setInterval(function(){ refreshBands(self.lines.length); }, 60000);
   document.addEventListener("visibilitychange", function(){ hidden=document.hidden; if(!hidden) last=performance.now(); });
   function frame(now){
-    if(!self.getMap()) return;
-    var dt=Math.min(0.1,(now-last)/1000); last=now;
-    if(!hidden && trafficMode!=="off") self.paint(dt, now);
     requestAnimationFrame(frame);
+    lastFrameT=now||performance.now();
+    try{
+      if(!self.getMap()) return;
+      var dt=Math.min(0.1,(now-last)/1000); last=now;
+      if(document.hidden) return;
+      if(!hidden && trafficMode!=="off") self.paint(dt, now);
+    }catch(e){}
   }
   requestAnimationFrame(frame);
+  setInterval(function(){
+    if(self.getMap() && performance.now()-lastFrameT>4000) requestAnimationFrame(frame);
+  }, 4000);
 };
-FlowOverlay.prototype.draw = function(){ this.paint(0, performance.now()); };
+FlowOverlay.prototype.draw = function(){ try{ this.paint(0, performance.now()); }catch(e){} };
 FlowOverlay.prototype.onRemove = function(){ if(this.cv&&this.cv.parentNode) this.cv.parentNode.removeChild(this.cv); this.setMap(null); };
 FlowOverlay.prototype.posAt = function(line, t){
   var d = t*line.len, cum=line.cum, lo=0, hi=cum.length-1;
