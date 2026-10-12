@@ -73,7 +73,8 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
   <span class="note">✦ <span id="t-pnote">顏色為模擬演示</span></span>
 </div>
 <div class="hud" id="dock">
-  <button class="chip" id="c-works">🚧 <span id="t-works">工程</span></button>
+  <button class="chip off" id="c-works">🚧 <span id="t-works">工程</span></button>
+  <button class="chip" id="c-locate">📍 <span id="t-locate">定位</span></button>
   <button class="chip" id="c-cams">📷 <span id="t-cams">鏡頭</span></button>
   <button class="chip" id="c-traffic">🚦 <span id="t-trafficMode">模擬路況</span></button>
   <button class="chip" id="c-sat">🛰️ <span id="t-sat">衛星</span></button>
@@ -99,15 +100,15 @@ var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 /* ===== i18n ===== */
 var I18N = {
- "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",legendOff:"路況已隱藏",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",noteOff:"",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
- "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",legendOff:"路况已隐藏",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",noteOff:"",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
+ "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",locate:"定位",myLoc:"我的位置",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",legendOff:"路況已隱藏",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",noteOff:"",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
+ "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",locate:"定位",myLoc:"我的位置",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",legendOff:"路况已隐藏",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",noteOff:"",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
  "en":{loading:"Loading…",live:"LIVE",works:"Works",cams:"Cams",trafficSim:"Simulated",trafficGoogle:"Google live",trafficOff:"Traffic off",legendSim:"Simulated traffic (demo)",legendGoogle:"Google live traffic",legendOff:"Traffic hidden",noteSim:"colors are simulated",noteGoogle:"real traffic data",noteOff:"",sat:"Satellite",key:"Key",ok:"Smooth",slow:"Slow",bad:"Congested",sheetT:"Live focus",keyT:"Google Maps API Key",keyHint:"Key stays in this browser only",save:"Save",clear:"Reset",close:"Close",langBtn:"繁",errKey:"Google key invalid or Maps JavaScript API not enabled",errNet:"Map failed to load. Check connection and retry.",liveCam:"Live snapshot",camLink:"Open stream ↗"}
 };
 var lang = localStorage.getItem("mct-lang") || "zh-Hant";
 var T = I18N[lang] || I18N["zh-Hant"];
 function applyLang(){
   T = I18N[lang];
-  var m = {"t-loading":"loading","t-live":"live","t-works":"works","t-cams":"cams","t-sat":"sat","t-key":"key","t-ok":"ok","t-slow":"slow","t-bad":"bad","t-legendT":"legendT","t-pnote":"pnote","t-sheetT":"sheetT","t-keyT":"keyT","t-keyHint":"keyHint","langbtn":"langBtn"};
+  var m = {"t-loading":"loading","t-live":"live","t-works":"works","t-cams":"cams","t-sat":"sat","t-locate":"locate","t-key":"key","t-ok":"ok","t-slow":"slow","t-bad":"bad","t-legendT":"legendT","t-pnote":"pnote","t-sheetT":"sheetT","t-keyT":"keyT","t-keyHint":"keyHint","langbtn":"langBtn"};
   for (var id in m){ var el=document.getElementById(id); if(el) el.textContent=T[m[id]]; }
   document.getElementById("keysave").textContent=T.save;
   document.getElementById("keyclear").textContent=T.clear;
@@ -132,7 +133,8 @@ var DARK = [
 ];
 
 var map, trafficLayer, flowOverlay, camMarkers=[], workMarkers=[], infoWin;
-var showWorks=true, showCams=true, satOn=false;
+var showWorks=false, showCams=true, satOn=false;
+var myDot=null;
 var trafficMode="sim";
 var trafficModes=["sim","google","off"];
 
@@ -141,6 +143,10 @@ window.gm_authFailure = function(){ showErr(T.errKey); };
 window.addEventListener("error", function(e){ if(!map) showErr(T.errNet+" ("+String(e.message||"").slice(0,60)+")"); });
 
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function blueDotIcon(){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"><circle cx="11" cy="11" r="12" fill="none" stroke="#0ea5e9" stroke-width="1.5" opacity=".55"/><circle cx="11" cy="11" r="7.5" fill="#0ea5e9" stroke="#fff" stroke-width="2.5"/></svg>';
+  return { url:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg), scaledSize:new google.maps.Size(22,22), anchor:new google.maps.Point(11,11) };
+}
 function emojiIcon(emoji, ring){
   var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30"><circle cx="15" cy="15" r="13" fill="#0b1520" stroke="'+ring+'" stroke-width="2.5"/><text x="15" y="20.5" font-size="13" text-anchor="middle">'+emoji+'</text></svg>';
   return { url:"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg), scaledSize:new google.maps.Size(30,30), anchor:new google.maps.Point(15,15) };
@@ -324,7 +330,7 @@ window.__initMap = function(){
   var pulsePts = [];
   WORKS.forEach(function(w){
     if(!(w.lat && w.lng)) return;
-    var mk = new google.maps.Marker({position:{lat:w.lat,lng:w.lng}, map:map, icon:workIcon, title:w.loc||w.title});
+    var mk = new google.maps.Marker({position:{lat:w.lat,lng:w.lng}, map:null, icon:workIcon, title:w.loc||w.title});
     mk.addListener("click", function(){
       infoWin.setContent('<div class="cam-pop"><b>🚧 '+esc(w.loc||"")+'</b><br>'+esc(w.title||"")+'</div>');
       infoWin.open(map, mk);
@@ -336,20 +342,33 @@ window.__initMap = function(){
   try{ initFlowOverlayClass(); flowOverlay = new FlowOverlay(map, buildAnimLines(), function(){ return showWorks ? pulsePts : []; }); flowOverlay.launch(); }catch(e){ flowOverlay=null; }
   buildSheet();
 
-  // 開場巡覽（仿 HK fly-over）
+  // 開場巡覽（仿 HK fly-over）；若定位成功則直飛用家位置
   var tour = [
     {c:{lat:22.1750,lng:113.5650}, z:12},
     {c:{lat:22.1400,lng:113.5850}, z:14},
     {c:{lat:22.1989,lng:113.5437}, z:15},
     {c:{lat:22.1805,lng:113.5605}, z:13}
   ];
-  var touring = true, ti = 0;
+  var touring = true, ti = 0, geoDone = false;
   map.addListener("dragstart", function(){ touring=false; });
-  (function step(){
+  function tourStep(){
     if(!touring || ti>=tour.length) return;
     map.panTo(tour[ti].c); map.setZoom(tour[ti].z); ti++;
-    setTimeout(step, 2600);
-  })();
+    setTimeout(tourStep, 2600);
+  }
+  function flyToMe(){
+    if(!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function(pos){
+      geoDone=true; touring=false;
+      var ll={lat:pos.coords.latitude,lng:pos.coords.longitude};
+      map.setZoom(15); map.panTo(ll);
+      if(myDot) myDot.setMap(null);
+      myDot=new google.maps.Marker({position:ll,map:map,icon:blueDotIcon(),title:T.myLoc,zIndex:999});
+    }, function(){}, {timeout:9000, maximumAge:120000});
+  }
+  flyToMe();
+  setTimeout(function(){ if(!geoDone) tourStep(); }, 2200);
+  document.getElementById("c-locate").onclick=function(){ if(!map) return; touring=false; flyToMe(); };
 
   google.maps.event.addListenerOnce(map, "tilesloaded", function(){
     document.getElementById("loading").style.display="none";
