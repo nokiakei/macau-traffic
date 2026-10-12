@@ -6,6 +6,7 @@
 <title>澳門交通情報</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;}
 html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-family:-apple-system,"PingFang HK","Noto Sans HK","Microsoft JhengHei",sans-serif}
 #map{position:absolute;inset:0}
 #flowCanvas{position:absolute;left:0;top:0;pointer-events:none}
@@ -28,7 +29,11 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 #dock{top:calc(64px + env(safe-area-inset-top));right:10px;display:flex;flex-direction:column;gap:8px}
 .chip{font-size:12px;color:#cfe9f7;background:rgba(4,10,16,.82);border:1px solid rgba(14,165,233,.35);border-radius:20px;padding:7px 12px;cursor:pointer;backdrop-filter:blur(6px);white-space:nowrap;text-align:left}
 .chip.off{opacity:.42}
-.chip:active{transform:scale(.96)}
+.chip{touch-action:manipulation}
+.chip:active{opacity:.7}
+#sheet h3{touch-action:manipulation}
+#langbtn{touch-action:manipulation}
+#keybar button{touch-action:manipulation}
 #sheet{left:12px;bottom:calc(108px + env(safe-area-inset-bottom));width:280px;max-height:38vh;overflow-y:auto;background:rgba(4,10,16,.86);border:1px solid rgba(14,165,233,.3);border-radius:12px;backdrop-filter:blur(8px);padding:10px 12px}
 #sheet h3{font-size:13px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
 #sheetChev{margin-left:auto;font-size:10px;color:#7dd3fc}
@@ -49,7 +54,7 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 .cam-pop a{color:#0369a1}
 @media (max-width:480px){
   #sheet{left:8px;right:8px;width:auto;bottom:calc(92px + env(safe-area-inset-bottom));max-height:30vh}
-  #legend{font-size:10px;padding:6px 9px;bottom:calc(8px + env(safe-area-inset-bottom));line-height:1.7}
+  #legend{font-size:10px;padding:6px 9px;bottom:calc(64px + env(safe-area-inset-bottom));line-height:1.7}
   #dock{top:auto;bottom:calc(8px + env(safe-area-inset-bottom));right:8px;left:8px;flex-direction:row;overflow-x:auto;justify-content:flex-start;gap:6px}
   #dock .chip{flex:0 0 auto}
   #topbar{padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top))}
@@ -100,8 +105,8 @@ var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 /* ===== i18n ===== */
 var I18N = {
- "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",locate:"定位",myLoc:"我的位置",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",legendOff:"路況已隱藏",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",noteOff:"",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
- "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",locate:"定位",myLoc:"我的位置",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",legendOff:"路况已隐藏",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",noteOff:"",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
+ "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",locate:"定位",myLoc:"我的位置",locateFail:"定位失敗，請檢查定位權限",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",legendOff:"路況已隱藏",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",noteOff:"",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
+ "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",locate:"定位",myLoc:"我的位置",locateFail:"定位失败，请检查定位权限",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",legendOff:"路况已隐藏",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",noteOff:"",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
  "en":{loading:"Loading…",live:"LIVE",works:"Works",cams:"Cams",trafficSim:"Simulated",trafficGoogle:"Google live",trafficOff:"Traffic off",legendSim:"Simulated traffic (demo)",legendGoogle:"Google live traffic",legendOff:"Traffic hidden",noteSim:"colors are simulated",noteGoogle:"real traffic data",noteOff:"",sat:"Satellite",key:"Key",ok:"Smooth",slow:"Slow",bad:"Congested",sheetT:"Live focus",keyT:"Google Maps API Key",keyHint:"Key stays in this browser only",save:"Save",clear:"Reset",close:"Close",langBtn:"繁",errKey:"Google key invalid or Maps JavaScript API not enabled",errNet:"Map failed to load. Check connection and retry.",liveCam:"Live snapshot",camLink:"Open stream ↗"}
 };
 var lang = localStorage.getItem("mct-lang") || "zh-Hant";
@@ -134,7 +139,7 @@ var DARK = [
 
 var map, trafficLayer, flowOverlay, camMarkers=[], workMarkers=[], infoWin;
 var showWorks=false, showCams=true, satOn=false;
-var myDot=null;
+var myDot=null, myAcc=null;
 var trafficMode="sim";
 var trafficModes=["sim","google","off"];
 
@@ -189,14 +194,13 @@ function applyTrafficMode(){
   if(lt) lt.textContent = trafficMode==="google"?T.legendGoogle:(trafficMode==="sim"?T.legendSim:T.legendOff);
   var pn=document.getElementById("t-pnote");
   if(pn) pn.textContent = trafficMode==="google"?T.noteGoogle:(trafficMode==="sim"?T.noteSim:T.noteOff);
-  if(typeof flowOverlay!=="undefined" && flowOverlay) flowOverlay.cachedPaths=null;
+  
 }
 
 var _flowProtoInit = false;
 function FlowOverlay(map, lines, getPulses){
   this._map=map; this.lines=lines; this.getPulses=getPulses; this.particles=[];
 }
-FlowOverlay.prototype.launch = function(){ this.setMap(this._map); };
 function initFlowOverlayClass(){
 if(_flowProtoInit) return; _flowProtoInit=true;
 FlowOverlay.prototype = new google.maps.OverlayView();
@@ -213,8 +217,8 @@ FlowOverlay.prototype.onAdd = function(){
     for (var j=0;j<count && this.particles.length<cap;j++) this.particles.push({line:ranked[k].i, t:(j+0.15)/count});
   }
   refreshBands(this.lines.length);
-  setInterval(function(){ refreshBands(self.lines.length); self.cachedPaths=null; }, 60000);
   var self=this, last=performance.now(), hidden=false;
+  setInterval(function(){ refreshBands(self.lines.length); }, 60000);
   document.addEventListener("visibilitychange", function(){ hidden=document.hidden; if(!hidden) last=performance.now(); });
   function frame(now){
     if(!self.getMap()) return;
@@ -224,22 +228,7 @@ FlowOverlay.prototype.onAdd = function(){
   }
   requestAnimationFrame(frame);
 };
-FlowOverlay.prototype.draw = function(){ this.cachedPaths=null; this.paint(0, performance.now()); };
-FlowOverlay.prototype.cachePaths = function(){
-  var proj=this.getProjection(); if(!proj) return;
-  var mapDiv=this.getMap().getDiv(), W=mapDiv.offsetWidth, H=mapDiv.offsetHeight, paths=[];
-  for(var i=0;i<this.lines.length;i++){
-    var line=this.lines[i], pts=[], x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
-    for(var j=0;j<line.coords.length;j++){
-      var xy=proj.fromLatLngToDivPixel(new google.maps.LatLng(line.coords[j][1],line.coords[j][0]));
-      if(!xy) continue;
-      pts.push([xy.x,xy.y]);
-      if(xy.x<x0)x0=xy.x; if(xy.y<y0)y0=xy.y; if(xy.x>x1)x1=xy.x; if(xy.y>y1)y1=xy.y;
-    }
-    paths.push(pts.length>1?{p:pts,vis:!(x1<-60||y1<-60||x0>W+60||y0>H+60)}:null);
-  }
-  this.cachedPaths=paths;
-};
+FlowOverlay.prototype.draw = function(){ this.paint(0, performance.now()); };
 FlowOverlay.prototype.onRemove = function(){ if(this.cv&&this.cv.parentNode) this.cv.parentNode.removeChild(this.cv); this.setMap(null); };
 FlowOverlay.prototype.posAt = function(line, t){
   var d = t*line.len, cum=line.cum, lo=0, hi=cum.length-1;
@@ -261,19 +250,24 @@ FlowOverlay.prototype.paint = function(dt, now){
   var sim = trafficMode==="sim";
   if(sim){
     // 走廊底色（仿 HK 紅黃綠）
-    if(!this.cachedPaths) this.cachePaths();
-    var paths=this.cachedPaths||[];
     ctx.save(); ctx.lineJoin="round"; ctx.lineCap="round";
-    for(i=0;i<paths.length;i++){
-      var e=paths[i]; if(!e||!e.vis) continue;
-      bi=lineBands[i]||0;
+    for(i=0;i<this.lines.length;i++){
+      line=this.lines[i]; bi=lineBands[i]||0;
+      var cpts=[], cx0=1e9, cy0=1e9, cx1=-1e9, cy1=-1e9, cok=true;
+      for(var cj=0;cj<line.coords.length;cj++){
+        var cxy=proj.fromLatLngToDivPixel(new google.maps.LatLng(line.coords[cj][1],line.coords[cj][0]));
+        if(!cxy){ cok=false; break; }
+        cpts.push(cxy);
+        if(cxy.x<cx0)cx0=cxy.x; if(cxy.y<cy0)cy0=cxy.y; if(cxy.x>cx1)cx1=cxy.x; if(cxy.y>cy1)cy1=cxy.y;
+      }
+      if(!cok||cpts.length<2||cx1<-60||cy1<-60||cx0>W+60||cy0>H+60) continue;
       ctx.strokeStyle="rgba(6,16,24,.55)"; ctx.lineWidth=6;
-      ctx.beginPath(); ctx.moveTo(e.p[0][0],e.p[0][1]);
-      for(var k=1;k<e.p.length;k++) ctx.lineTo(e.p[k][0],e.p[k][1]);
+      ctx.beginPath(); ctx.moveTo(cpts[0].x,cpts[0].y);
+      for(var ck=1;ck<cpts.length;ck++) ctx.lineTo(cpts[ck].x,cpts[ck].y);
       ctx.stroke();
       ctx.strokeStyle=BAND_DEF[bi].c; ctx.globalAlpha=.65; ctx.lineWidth=3.5;
-      ctx.beginPath(); ctx.moveTo(e.p[0][0],e.p[0][1]);
-      for(var k2=1;k2<e.p.length;k2++) ctx.lineTo(e.p[k2][0],e.p[k2][1]);
+      ctx.beginPath(); ctx.moveTo(cpts[0].x,cpts[0].y);
+      for(var ck2=1;ck2<cpts.length;ck2++) ctx.lineTo(cpts[ck2].x,cpts[ck2].y);
       ctx.stroke(); ctx.globalAlpha=1;
     }
     ctx.restore();
@@ -322,7 +316,7 @@ window.__initMap = function(){
   var camIcon = emojiIcon("📷","#0ea5e9");
   Object.keys(CAMS).forEach(function(id){
     var c = CAMS[id];
-    var mk = new google.maps.Marker({position:{lat:c.lat,lng:c.lng}, map:map, icon:camIcon, title:c.name});
+    var mk = new google.maps.Marker({position:{lat:c.lat,lng:c.lng}, map:null, icon:camIcon, title:c.name});
     mk.addListener("click", function(){ infoWin.setContent(camPopup(id, c.name)); infoWin.open(map, mk); });
     camMarkers.push(mk);
   });
@@ -344,7 +338,7 @@ window.__initMap = function(){
 
   // 開場巡覽（仿 HK fly-over）；若定位成功則直飛用家位置
   var tour = [
-    {c:{lat:22.1750,lng:113.5650}, z:12},
+    {c:{lat:22.1750,lng:113.5650}, z:13},
     {c:{lat:22.1400,lng:113.5850}, z:14},
     {c:{lat:22.1989,lng:113.5437}, z:15},
     {c:{lat:22.1805,lng:113.5605}, z:13}
@@ -360,12 +354,20 @@ window.__initMap = function(){
     if(!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(function(pos){
       geoDone=true; touring=false;
+      var acc=pos.coords.accuracy||9999;
       var ll={lat:pos.coords.latitude,lng:pos.coords.longitude};
-      map.setZoom(15); map.panTo(ll);
+      var gz=acc<100?16:(acc<500?15:(acc<1500?14:13));
+      map.setZoom(gz); map.panTo(ll);
       if(myDot) myDot.setMap(null);
-      myDot=new google.maps.Marker({position:ll,map:map,icon:blueDotIcon(),title:T.myLoc,zIndex:999});
-    }, function(){}, {timeout:9000, maximumAge:120000});
+      if(myAcc) myAcc.setMap(null);
+      myAcc=new google.maps.Circle({center:ll,radius:Math.min(acc,3000),map:map,
+        strokeColor:"#0ea5e9",strokeOpacity:.55,strokeWeight:1.5,fillColor:"#0ea5e9",fillOpacity:.14});
+      myDot=new google.maps.Marker({position:ll,map:map,icon:blueDotIcon(),
+        title:T.myLoc+" (±"+Math.round(acc)+"m)",zIndex:999});
+    }, function(){ infoWin.setContent("📍 "+T.locateFail); infoWin.open(map); }, {timeout:20000, maximumAge:0, enableHighAccuracy:true});
   }
+  updateMarkerVis();
+  map.addListener("zoom_changed", updateMarkerVis);
   flyToMe();
   setTimeout(function(){ if(!geoDone) tourStep(); }, 2200);
   document.getElementById("c-locate").onclick=function(){ if(!map) return; touring=false; flyToMe(); };
@@ -417,8 +419,14 @@ document.getElementById("langbtn").onclick = function(){
   location.reload();
 };
 function toggleChip(btn, fn){ var b=document.getElementById(btn); b.onclick=function(){ if(!map) return; b.classList.toggle("off"); fn(b.classList.contains("off")); }; }
-toggleChip("c-works", function(off){ workMarkers.forEach(function(m){m.setMap(off?null:map);}); });
-toggleChip("c-cams", function(off){ camMarkers.forEach(function(m){m.setMap(off?null:map);}); });
+function updateMarkerVis(){
+  if(!map) return;
+  var show=map.getZoom()>=13;
+  camMarkers.forEach(function(m){ m.setMap(showCams&&show?map:null); });
+  workMarkers.forEach(function(m){ m.setMap(showWorks&&show?map:null); });
+}
+toggleChip("c-works", function(off){ showWorks=!off; updateMarkerVis(); });
+toggleChip("c-cams", function(off){ showCams=!off; updateMarkerVis(); });
 document.getElementById("c-traffic").onclick=function(){
   if(!map) return;
   trafficMode=trafficModes[(trafficModes.indexOf(trafficMode)+1)%trafficModes.length];
@@ -443,6 +451,8 @@ document.getElementById("keysave").onclick = function(){
 document.getElementById("keyclear").onclick = function(){ localStorage.removeItem("mct-gkey"); location.reload(); };
 document.getElementById("keyclose").onclick = function(){ document.getElementById("keybar").classList.remove("show"); };
 
+document.addEventListener("gesturestart", function(e){ e.preventDefault(); });
+document.addEventListener("dblclick", function(e){ if(e.target.closest&&e.target.closest(".hud")) e.preventDefault(); }, {passive:false});
 applyLang();
 loadMaps();
 </script>
