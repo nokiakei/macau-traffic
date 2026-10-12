@@ -30,7 +30,11 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 .chip.off{opacity:.42}
 .chip:active{transform:scale(.96)}
 #sheet{left:12px;bottom:calc(108px + env(safe-area-inset-bottom));width:280px;max-height:38vh;overflow-y:auto;background:rgba(4,10,16,.86);border:1px solid rgba(14,165,233,.3);border-radius:12px;backdrop-filter:blur(8px);padding:10px 12px}
-#sheet h3{font-size:13px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+#sheet h3{font-size:13px;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:6px;cursor:pointer}
+#sheetChev{margin-left:auto;font-size:10px;color:#7dd3fc}
+#sheet.collapsed #sheetlist{display:none}
+#sheet.collapsed{max-height:none}
+#sheet.collapsed #sheetChev{transform:rotate(-90deg)}
 #sheet h3 .pulse-dot{width:8px;height:8px;border-radius:50%;background:#3DDC97;animation:blink 1.6s infinite}
 #sheet .row{font-size:12px;color:#b8d6e8;padding:8px 4px;border-top:1px solid rgba(14,165,233,.14);cursor:pointer;line-height:1.5}
 #sheet .row:active{background:rgba(14,165,233,.15)}
@@ -75,7 +79,7 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
   <button class="chip" id="c-sat">🛰️ <span id="t-sat">衛星</span></button>
   <button class="chip" id="c-key">🔑 <span id="t-key">Key</span></button>
 </div>
-<div class="hud" id="sheet"><h3><span class="pulse-dot"></span><span id="t-sheetT">實時焦點</span></h3><div id="sheetlist"></div></div>
+<div class="hud" id="sheet"><h3 id="sheetHead"><span class="pulse-dot"></span><span id="t-sheetT">實時焦點</span><span id="sheetChev">▼</span></h3><div id="sheetlist"></div></div>
 <div class="hud" id="keybar">
   <div style="font-size:13px;color:#fff" id="t-keyT">Google Maps API Key</div>
   <input id="keyinput" placeholder="AIza…">
@@ -95,9 +99,9 @@ var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
 /* ===== i18n ===== */
 var I18N = {
- "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
- "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
- "en":{loading:"Loading…",live:"LIVE",works:"Works",cams:"Cams",trafficSim:"Simulated",trafficGoogle:"Google live",trafficOff:"Traffic off",legendSim:"Simulated traffic (demo)",legendGoogle:"Google live traffic",noteSim:"colors are simulated",noteGoogle:"real traffic data",sat:"Satellite",key:"Key",ok:"Smooth",slow:"Slow",bad:"Congested",sheetT:"Live focus",keyT:"Google Maps API Key",keyHint:"Key stays in this browser only",save:"Save",clear:"Reset",close:"Close",langBtn:"繁",errKey:"Google key invalid or Maps JavaScript API not enabled",errNet:"Map failed to load. Check connection and retry.",liveCam:"Live snapshot",camLink:"Open stream ↗"}
+ "zh-Hant":{loading:"載入中…",live:"實時",works:"工程",cams:"鏡頭",trafficSim:"模擬路況",trafficGoogle:"Google實時",trafficOff:"路況隱藏",legendSim:"模擬路況（演示）",legendGoogle:"Google 實時路況",legendOff:"路況已隱藏",noteSim:"顏色為模擬演示",noteGoogle:"真實路況數據",noteOff:"",sat:"衛星",key:"Key",ok:"暢順",slow:"緩慢",bad:"擠塞",sheetT:"實時焦點",keyT:"Google Maps API Key",keyHint:"Key 只存喺你部機嘅瀏覽器入面",save:"儲存",clear:"重設",close:"關閉",langBtn:"EN",errKey:"Google Key 無效或未啟用 Maps JavaScript API",errNet:"地圖載入失敗，請檢查網絡後再試",liveCam:"即時影像",camLink:"開直播 ↗"},
+ "zh-Hans":{loading:"载入中…",live:"实时",works:"工程",cams:"镜头",trafficSim:"模拟路况",trafficGoogle:"Google实时",trafficOff:"路况隐藏",legendSim:"模拟路况（演示）",legendGoogle:"Google 实时路况",legendOff:"路况已隐藏",noteSim:"颜色为模拟演示",noteGoogle:"真实路况数据",noteOff:"",sat:"卫星",key:"Key",ok:"畅顺",slow:"缓慢",bad:"拥塞",sheetT:"实时焦点",keyT:"Google Maps API Key",keyHint:"Key 只保存在你本机的浏览器里",save:"保存",clear:"重置",close:"关闭",langBtn:"EN",errKey:"Google Key 无效或未启用 Maps JavaScript API",errNet:"地图加载失败，请检查网络后重试",liveCam:"实时影像",camLink:"开直播 ↗"},
+ "en":{loading:"Loading…",live:"LIVE",works:"Works",cams:"Cams",trafficSim:"Simulated",trafficGoogle:"Google live",trafficOff:"Traffic off",legendSim:"Simulated traffic (demo)",legendGoogle:"Google live traffic",legendOff:"Traffic hidden",noteSim:"colors are simulated",noteGoogle:"real traffic data",noteOff:"",sat:"Satellite",key:"Key",ok:"Smooth",slow:"Slow",bad:"Congested",sheetT:"Live focus",keyT:"Google Maps API Key",keyHint:"Key stays in this browser only",save:"Save",clear:"Reset",close:"Close",langBtn:"繁",errKey:"Google key invalid or Maps JavaScript API not enabled",errNet:"Map failed to load. Check connection and retry.",liveCam:"Live snapshot",camLink:"Open stream ↗"}
 };
 var lang = localStorage.getItem("mct-lang") || "zh-Hant";
 var T = I18N[lang] || I18N["zh-Hant"];
@@ -176,9 +180,9 @@ function applyTrafficMode(){
   var lbl=document.getElementById("t-trafficMode");
   if(lbl) lbl.textContent = trafficMode==="sim"?T.trafficSim:(trafficMode==="google"?T.trafficGoogle:T.trafficOff);
   var lt=document.getElementById("t-legendT");
-  if(lt) lt.textContent = trafficMode==="google"?T.legendGoogle:T.legendSim;
+  if(lt) lt.textContent = trafficMode==="google"?T.legendGoogle:(trafficMode==="sim"?T.legendSim:T.legendOff);
   var pn=document.getElementById("t-pnote");
-  if(pn) pn.textContent = trafficMode==="google"?T.noteGoogle:T.noteSim;
+  if(pn) pn.textContent = trafficMode==="google"?T.noteGoogle:(trafficMode==="sim"?T.noteSim:T.noteOff);
   if(typeof flowOverlay!=="undefined" && flowOverlay) flowOverlay.cachedPaths=null;
 }
 
@@ -261,7 +265,7 @@ FlowOverlay.prototype.paint = function(dt, now){
       ctx.beginPath(); ctx.moveTo(e.p[0][0],e.p[0][1]);
       for(var k=1;k<e.p.length;k++) ctx.lineTo(e.p[k][0],e.p[k][1]);
       ctx.stroke();
-      ctx.strokeStyle=BAND_DEF[bi].c; ctx.globalAlpha=.5; ctx.lineWidth=3;
+      ctx.strokeStyle=BAND_DEF[bi].c; ctx.globalAlpha=.65; ctx.lineWidth=3.5;
       ctx.beginPath(); ctx.moveTo(e.p[0][0],e.p[0][1]);
       for(var k2=1;k2<e.p.length;k2++) ctx.lineTo(e.p[k2][0],e.p[k2][1]);
       ctx.stroke(); ctx.globalAlpha=1;
@@ -353,6 +357,10 @@ window.__initMap = function(){
   if(QP.get("selftest")==="1") selftest();
 };
 
+document.getElementById("sheetHead").onclick=function(){
+  var sh=document.getElementById("sheet"); sh.classList.toggle("collapsed");
+};
+if(window.innerWidth<=480) document.getElementById("sheet").classList.add("collapsed");
 function buildSheet(){
   var list = document.getElementById("sheetlist"); list.innerHTML="";
   var items = WORKS.filter(function(w){return w.lat&&w.lng;}).slice(0,40);
