@@ -4,8 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>澳門交通情報 3D</title>
-<script src="https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/Cesium.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/Widgets/widgets.css">
+<script>
+var __cesiumCDNs=[
+ "https://unpkg.com/cesium@1.146.0/Build/Cesium/Cesium.js",
+ "https://cdn.jsdelivr.net/npm/cesium@1.146.0/Build/Cesium/Cesium.js"
+];
+function __loadCesium(i){
+  if(i>=__cesiumCDNs.length){ showErr("CesiumJS 載入失敗，請檢查網絡後重試"); return; }
+  var sc=document.createElement("script");
+  sc.src=__cesiumCDNs[i];
+  sc.onload=function(){ __init3D(); };
+  sc.onerror=function(){ __loadCesium(i+1); };
+  document.head.appendChild(sc);
+}
+</script>
+<link rel="stylesheet" href="https://unpkg.com/cesium@1.146.0/Build/Cesium/Widgets/widgets.css">
 <style>
 html{-webkit-text-size-adjust:100%}
 html,body{height:100%;margin:0;background:#04090f;overflow:hidden;font-family:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
@@ -816,7 +829,7 @@ function showErr(m){
   var e=document.getElementById("err"); e.style.display="flex";
   document.getElementById("errmsg").textContent=m;
 }
-(function(){
+function __init3D(){
   if(typeof Cesium==="undefined"){ showErr("CesiumJS 載入失敗，請檢查網絡後重試"); return; }
   Cesium.GoogleMaps.defaultApiKey=GOOGLE_KEY;
   var viewer=new Cesium.Viewer("cesiumContainer",{
@@ -941,7 +954,8 @@ function showErr(m){
   }).catch(function(err){
     showErr("3D 圖資載入失敗（"+(err&&err.message?err.message:err)+"）\n請確認已喺 Google Console 啟用 Map Tiles API");
   });
-})();
+}
+__loadCesium(0);
 </script>
 </body>
 </html>
