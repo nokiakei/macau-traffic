@@ -808,6 +808,30 @@ var ROAD3D=[
 [113.55317,22.20620,113.55394,22.20555]
 ];
 var GOOGLE_KEY="AIzaSyAv_cwmo_jzjUVMqTptQwH7T0q2dvhq510";
+// 保險：強制所有去 tile.googleapis.com 嘅請求都帶完整 referrer
+// （部分瀏覽器唔跟 <meta name="referrer">，呢度直接喺 fetch 層面補上）
+(function(){
+  try{
+    var _f=window.fetch;
+    window.fetch=function(u,o){
+      try{
+        var str=typeof u==="string"?u:(u&&u.url)||"";
+        if(str.indexOf("tile.googleapis.com")>=0){ o=o||{}; if(!o.referrer) o.referrer=location.href; }
+      }catch(e){}
+      return _f.call(this,u,o);
+    };
+  }catch(e){}
+})();
+// 診斷：直接問 Google 攞真正嘅錯誤原因
+function probeTiles(cb){
+  fetch("https://tile.googleapis.com/v1/3dtiles/root.json?key="+GOOGLE_KEY).then(function(r){
+    if(r.ok){ cb({ok:true}); return; }
+    r.json().then(function(j){
+      var e=(j&&j.error)||{}, d=(e.details&&e.details[0])||{}, m=d.metadata||{};
+      cb({ok:false, reason:d.reason||"", msg:e.message||("HTTP "+r.status), ref:m.httpReferrer||""});
+    }).catch(function(){ cb({ok:false, reason:"", msg:"HTTP "+r.status, ref:""}); });
+  }).catch(function(e){ cb({ok:false, reason:"network", msg:String((e&&e.message)||e), ref:""}); });
+}
 var BAND_DEF=[
   {c:"#3DDC97", sp:42},
   {c:"#FFC857", sp:20},
@@ -960,7 +984,10 @@ function __init3D(){
     fly45();
     requestAnimationFrame(tick);
   }).catch(function(err){
-    showErr("3D 圖資載入失敗（"+(err&&err.message?err.message:err)+"）\n請確認已喺 Google Console 啟用 Map Tiles API");
+    probeTiles(function(p){
+      var detail=p.ok?"":("\n原因："+(p.reason||p.msg)+(p.ref?"｜Google見到嘅來源："+p.ref:""));
+      showErr("3D 圖資載入失敗（"+(err&&err.message?err.message:err)+"）"+detail+"\n請cap圖俾小Nok睇");
+    });
   });
 }
 __loadCesium(0);
