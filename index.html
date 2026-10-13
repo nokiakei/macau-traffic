@@ -213,13 +213,7 @@ FlowOverlay.prototype.onAdd = function(){
   var cv = this.cv = document.createElement("canvas");
   cv.id = "flowCanvas";
   this.getPanes().overlayLayer.appendChild(cv);
-  // 仿 HK：按路段長度分配粒子，上限 280（iOS 減半）
-  var cap = IS_IOS ? 140 : 280;
-  var ranked = this.lines.map(function(l,i){return {l:l,i:i};}).sort(function(a,b){return b.l.len-a.l.len;});
-  for (var k=0;k<ranked.length && this.particles.length<cap;k++){
-    var L = ranked[k].l, count = Math.max(1, Math.min(4, Math.round(L.len/1.2)));
-    for (var j=0;j<count && this.particles.length<cap;j++) this.particles.push({line:ranked[k].i, t:(j+0.15)/count});
-  }
+  // 流動光效取代粒子：唔再需要逐粒初始化
   refreshBands(this.lines.length);
   var self=this, last=performance.now(), hidden=false, lastFrameT=0;
   setInterval(function(){ refreshBands(self.lines.length); }, 60000);
@@ -262,6 +256,7 @@ FlowOverlay.prototype.paint = function(dt, now){
   if(sim){
     // 走廊底色（仿 HK 紅黃綠）
     ctx.save(); ctx.lineJoin="round"; ctx.lineCap="round";
+    var visPaths=[];
     for(i=0;i<this.lines.length;i++){
       line=this.lines[i]; bi=lineBands[i]||0;
       var cpts=[], cx0=1e9, cy0=1e9, cx1=-1e9, cy1=-1e9, cok=true;
@@ -280,24 +275,23 @@ FlowOverlay.prototype.paint = function(dt, now){
       ctx.beginPath(); ctx.moveTo(cpts[0].x,cpts[0].y);
       for(var ck2=1;ck2<cpts.length;ck2++) ctx.lineTo(cpts[ck2].x,cpts[ck2].y);
       ctx.stroke(); ctx.globalAlpha=1;
+      visPaths.push(cpts);
     }
+    // 流動光效：成條路沿行車方向嘅進度條（光→暗移動，取代白點）
+    var fper=64, foff=-((now/38)%fper);
+    ctx.setLineDash([20,fper-20]); ctx.lineDashOffset=foff;
+    ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.lineWidth=3.2;
+    ctx.shadowColor="rgba(255,255,255,.85)"; ctx.shadowBlur=7;
+    for(var vi=0;vi<visPaths.length;vi++){
+      var vp=visPaths[vi];
+      ctx.beginPath(); ctx.moveTo(vp[0].x,vp[0].y);
+      for(var vk=1;vk<vp.length;vk++) ctx.lineTo(vp[vk].x,vp[vk].y);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]); ctx.shadowBlur=0;
     ctx.restore();
   }
-  // 粒子：跟行車方向流動（模擬模式按擁擠配色＋速度）
-  for(i=0;i<this.particles.length;i++){
-    p=this.particles[i]; line=this.lines[p.line]; bi=lineBands[p.line]||0; bd=BAND_DEF[bi];
-    var spd = sim ? bd.sp : 30;
-    var pace = Math.max(0.25, spd/50) * 0.075;
-    p.t = (p.t + pace*dt) % 1;
-    pt=this.posAt(line,p.t);
-    xy=proj.fromLatLngToDivPixel(new google.maps.LatLng(pt[1],pt[0]));
-    if(!xy||xy.x<-10||xy.y<-10||xy.x>W+10||xy.y>H+10) continue;
-    var col = sim ? bd.c : "#bae6fd";
-    ctx.save();
-    ctx.shadowColor=col; ctx.shadowBlur=9; ctx.fillStyle=col;
-    ctx.beginPath(); ctx.arc(xy.x,xy.y,sim?3:2.6,0,6.2832); ctx.fill();
-    ctx.restore();
-  }
+  // （粒子已移除，改用走廊流動光效）
   // 工程脈衝環
   var pulses=this.getPulses();
   ctx.save(); ctx.lineWidth=2;
@@ -410,7 +404,7 @@ function buildSheet(){
 }
 
 function selftest(){
-  var checks = [ !!map, !!trafficLayer, camMarkers.length>=90, workMarkers.length>=100, !!flowOverlay, flowOverlay&&flowOverlay.particles.length>50, lineBands.length>100 ];
+  var checks = [ !!map, !!trafficLayer, camMarkers.length>=90, workMarkers.length>=100, !!flowOverlay, flowOverlay&&flowOverlay.lines.length>100, lineBands.length>100 ];
   document.title = checks.every(Boolean) ? "SELFTEST PASS ("+camMarkers.length+"c/"+workMarkers.length+"w/"+(flowOverlay?flowOverlay.particles.length:0)+"p)" : "SELFTEST FAIL";
 }
 
