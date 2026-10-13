@@ -31,6 +31,8 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
 .chip.off{opacity:.42}
 .chip{touch-action:manipulation}
 .chip:active{opacity:.7}
+#dock.collapsed .chip{display:none}
+#dock.collapsed #c-fold{display:block}
 #sheet h3{touch-action:manipulation}
 #langbtn{touch-action:manipulation}
 #keybar button{touch-action:manipulation}
@@ -78,6 +80,7 @@ html,body{height:100%;overflow:hidden;background:#061018;color:#e8f4fd;font-fami
   <span class="note">✦ <span id="t-pnote">顏色為模擬演示</span></span>
 </div>
 <div class="hud" id="dock">
+  <button class="chip" id="c-fold" title="收起按鈕">－</button>
   <button class="chip off" id="c-works">🚧 <span id="t-works">工程</span></button>
   <button class="chip" id="c-locate">📍 <span id="t-locate">定位</span></button>
   <button class="chip" id="c-3d" onclick="location.href='3d.html'">🏙️ <span>3D</span></button>
@@ -379,6 +382,10 @@ window.__initMap = function(){
   flyToMe();
   setTimeout(function(){ if(!geoDone) tourStep(); }, 2200);
   document.getElementById("c-locate").onclick=function(){ if(!map) return; touring=false; flyToMe(); };
+  document.getElementById("c-fold").onclick=function(){
+    var d=document.getElementById("dock"), c=d.classList.toggle("collapsed");
+    this.textContent=c?"＋":"－";
+  };
 
   google.maps.event.addListenerOnce(map, "tilesloaded", function(){
     document.getElementById("loading").style.display="none";
