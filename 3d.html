@@ -985,8 +985,11 @@ function __init3D(){
     requestAnimationFrame(tick);
   }).catch(function(err){
     probeTiles(function(p){
-      var detail=p.ok?"":("\n原因："+(p.reason||p.msg)+(p.ref?"｜Google見到嘅來源："+p.ref:""));
-      showErr("3D 圖資載入失敗（"+(err&&err.message?err.message:err)+"）"+detail+"\n請cap圖俾小Nok睇");
+      if(p.reason==="API_KEY_HTTP_REFERRER_BLOCKED"){
+        showErr("3D 圖資載入失敗：Google 擋咗呢個來源（"+(p.ref||"冇送來源")+"）。請去 Google Console → 憑證 → 撳你條 Key → HTTP 參照網址加多一行 https://nokiakei.github.io/*（呢個 domain 得你自己用得到）。改完等 1 分鐘再開。");
+      }else{
+        showErr("3D 圖資載入失敗（"+(err&&err.message?err.message:err)+"）原因："+(p.reason||p.msg)+"（Google見到嘅來源："+(p.ref||"無")+"）。請cap圖俾小Nok睇。");
+      }
     });
   });
 }
