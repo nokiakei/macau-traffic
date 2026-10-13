@@ -1194,7 +1194,7 @@ function __init3D(){
     navigationHelpButton:false, fullscreenButton:false, vrButton:false
   });
   viewer.scene.skyAtmosphere=new Cesium.SkyAtmosphere();
-  var corridorEnts=[], particles=[], showTraffic=true;
+  var corridorEnts=[], flowEnts=[], showTraffic=true;
 
   function fly45(){
     viewer.camera.flyTo({
@@ -1241,43 +1241,30 @@ function __init3D(){
     }
   }
 
-  function buildParticles(){
-    var ranked=[], i;
-    for(i=0;i<ROAD3D.length;i++) ranked.push([ROAD3D[i].length/2, i]);
-    ranked.sort(function(a,b){return b[0]-a[0];});
-    var cap=200, per=Math.max(1,Math.floor(cap/Math.min(ranked.length,60)));
-    for(i=0;i<Math.min(ranked.length,60);i++){
-      var li=ranked[i][1], npts=ROAD3D[li].length/2;
-      for(var j=0;j<per && particles.length<cap;j++){
-        (function(lineIdx, n){
-          var ent=viewer.entities.add({
-            position:new Cesium.ConstantPositionProperty(Cesium.Cartesian3.fromDegrees(0,0,0)),
-            point:{
-              pixelSize:12, outlineWidth:2,
-              outlineColor:Cesium.Color.fromCssColorString("#0b1c26"),
-              // 光點永遠顯示，唔被大廈遮
-              disableDepthTestDistance:Number.POSITIVE_INFINITY
-            }
-          });
-          particles.push({ent:ent, line:lineIdx, n:n, t:Math.random()});
-        })(li, npts);
-      }
-    }
-  }
-
-  function paintParticles(dt){
-    for(var i=0;i<particles.length;i++){
-      var p=particles[i], bi=lineBands[p.line]||0, bd=BAND_DEF[bi];
-      var pace=Math.max(0.25, bd.sp/50)*0.075;
-      p.t=(p.t+pace*dt)%1;
-      var arr=ROAD3D[p.line], f=p.t*(p.n-1), i0=Math.floor(f), fr=f-i0;
-      var i1=Math.min(i0+1, p.n-1);
-      var lng=arr[i0*2]+(arr[i1*2]-arr[i0*2])*fr;
-      var lat=arr[i0*2+1]+(arr[i1*2+1]-arr[i0*2+1])*fr;
-      var pbh=(typeof ROAD3D_H!=="undefined"?ROAD3D_H[p.line]:0)||0;
-      p.ent.position=new Cesium.ConstantPositionProperty(
-        Cesium.Cartesian3.fromDegrees(lng, lat, pbh>0?pbh+3:18));
-      p.ent.point.color=new Cesium.ColorMaterialProperty(bandColor(bi,1));
+  // ===== 流動光效：成條路沿行車方向嘅進度條（光→暗移動，取代白點）=====
+  var flowEnts=[];
+  var flowMat=new Cesium.Material({
+    fabric:{
+      uniforms:{ u_color:new Cesium.Color(1,1,1,.55), u_speed:9.0, u_repeat:5.0 },
+      source:"uniform vec4 u_color;uniform float u_speed;uniform float u_repeat;czm_material czm_getMaterial(czm_materialInput materialInput){czm_material material=czm_getDefaultMaterial(materialInput);float t=fract(materialInput.st.s*u_repeat-czm_frameNumber*u_speed/3600.0);float glow=smoothstep(0.0,0.3,t)*(1.0-smoothstep(0.7,1.0,t));material.diffuse=u_color.rgb;material.alpha=u_color.a*glow;return material;}",
+    },
+    translucent:true
+  });
+  function buildFlow(){
+    for(var k=0;k<ROAD3D.length;k++){
+      var arr=ROAD3D[k], bh=(typeof ROAD3D_H!=="undefined"?ROAD3D_H[k]:0)||0;
+      var heights=[];
+      for(var q=0;q<arr.length;q+=2) heights.push(arr[q],arr[q+1],bh>0?bh:0.5);
+      try{
+        flowEnts.push(viewer.entities.add({
+          polyline:{
+            positions:Cesium.Cartesian3.fromDegreesArrayHeights(heights),
+            width:3,
+            material:flowMat,
+            clampToGround:bh>0?false:true
+          }
+        }));
+      }catch(e){ console.warn("flow skip",k,e&&e.message); }
     }
   }
 
@@ -1285,7 +1272,7 @@ function __init3D(){
     showTraffic=!showTraffic;
     this.classList.toggle("off", !showTraffic);
     for(var i=0;i<corridorEnts.length;i++) corridorEnts[i].show=showTraffic;
-    for(var j=0;j<particles.length;j++) particles[j].ent.show=showTraffic;
+    for(var j=0;j<flowEnts.length;j++) flowEnts[j].show=showTraffic;
   };
   document.getElementById("c-fold").onclick=function(){
     var d=document.getElementById("dock"), c=d.classList.toggle("collapsed");
@@ -1307,13 +1294,14 @@ function __init3D(){
   function tick(now){
     requestAnimationFrame(tick);
     var dt=Math.min(0.1,(now-lastT)/1000); lastT=now;
-    if(showTraffic && !document.hidden) paintParticles(dt);
+    // 流動光效由 shader 自動動畫（czm_frameNumber），唔使逐幀更新
   }
 
   Cesium.createGooglePhotorealistic3DTileset().then(function(tileset){
     viewer.scene.primitives.add(tileset);
     refreshBands(ROAD3D.length);
     buildCorridors();
+    buildFlow();
     buildParticles();
     setInterval(function(){
       refreshBands(ROAD3D.length);
